@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>法案資料庫查詢系統</title>
+    <!-- Awesome Icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" />
+    <style>
+        .element-hidden {
+            display: none !important;
+        }
+        /* Reset & Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            min-height: 100vh;
+            padding: 16px;
+            color: #1f2937;
+        }
+        /* Layout */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-height: 100vh;
+        }
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 12px;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(12px);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .header h1 {
+            color: #111827;
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header .subtitle {
+            color: #6b7280;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+        /* Main Content */
+        .main-content {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+        }
+        .form-section {
+            flex: 0 0 30%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .data-section {
+            flex: 0 0 70%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            overflow-y: auto;
+            max-height: 73vh;
+        }
+        /* Form Styles */
+        .form-container {
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #374151;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            flex: 1;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+        .form-help {
+            margin-top: 15px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 4px solid #4f46e5;
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+        /* Data Section Styles */
+        .data-header {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .data-header h2 {
+            color: #111827;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .data-header .subtitle {
+            color: #6b7280;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        .data-stats {
+            display: flex;
+            justify-content: space-around;
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #e5e7eb;
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #4f46e5;
+            display: block;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: #6b7280;
+        }
+        .accordion-container {
+            margin-top: 20px;
+        }
+        .ordinance-item {
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .ordinance-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .ordinance-header {
+            background: #3da956;
+            color: white;
+            padding: 12px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .ordinance-header.active {
+            background: #f5c842;
+            color: black;
+        }
+        .ordinance-header i {
+            transition: transform 0.3s ease;
+        }
+        .ordinance-header.collapsed i {
+            transform: rotate(-90deg);
+        }
+        .ordinance-content {
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #e5e7eb;
+        }
+        .bill-item {
+            margin-bottom: 10px;
+            border-left: 3px solid #4f46e5;
+            background: #f8fafc;
+        }
+        .bill-header {
+            background: #3b82f6;
+            color: white;
+            padding: 10px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+        }
+        .committee-item {
+            margin-left: 10px;
+            border-left: 3px solid #8b5cf6;
+            background: #faf5ff;
+        }
+        .committee-header {
+            background: #8b5cf6;
+            color: white;
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+        }
+        .details-content {
+            padding: 12px;
+            background: white;
+        }
+        .info-row {
+            display: flex;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #374151;
+            width: 150px;
+            flex-shrink: 0;
+        }
+        .info-value {
+            flex: 1;
+            color: #6b7280;
+            word-break: break-word;
+        }
+        .info-value a {
+            color: #4f46e5;
+            text-decoration: none;
+        }
+        .info-value a:hover {
+            text-decoration: underline;
+        }
+        .no-data {
+            text-align: center;
+            padding: 40px 20px;
+            color: #9ca3af;
+        }
+        .no-data i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b7280;
+        }
+        .loading-spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        /* Footer */
+        .footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 0.875rem;
+            padding: 20px;
+            margin-top: auto;
+        }
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            body {
+                padding: 12px;
+                background: #4f46e5;
+            }
+            .container {
+                gap: 16px;
+            }
+            .header {
+                padding: 16px;
+                border-radius: 12px;
+            }
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            .main-content {
+                flex-direction: column;
+            }
+            .form-section,
+            .data-section {
+                flex: 1 1 100%;
+                width: 100%;
+            }
+            .data-section {
+                max-height: 400px;
+                padding: 15px;
+            }
+            .data-header h2 {
+                font-size: 1.3rem;
+            }
+            .stat-value {
+                font-size: 1.5rem;
+            }
+            .info-row {
+                flex-direction: column;
+                margin-bottom: 15px;
+            }
+            .info-label {
+                width: 100%;
+                margin-bottom: 5px;
+            }
+            .ordinance-header {
+                padding: 10px 12px;
+                font-size: 0.9rem;
+            }
+            .form-actions {
+                flex-direction: column;
+            }
+        }
+        /* Smooth Transitions */
+        * {
+            transition: all 0.3s ease;
+        }
+        /* Notification */
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 3000;
+            animation: slideIn 0.3s ease-out;
+        }
+        .notification.error {
+            background: #ef4444;
+        }
+        .notification.info {
+            background: #3b82f6;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>「法案資料庫」查詢系統</h1>
+            <p class="subtitle">香港立法會法案資料查詢系統 | 資料來源: 立法會法案資料庫</p>
+        </header>
+        <main class="main-content">
+            <section class="form-section">
+                <div class="form-container">
+                    <h2 style="margin-bottom: 20px; color: #111827; font-size: 1.3rem;">查詢條件</h2>
+                    <div class="form-group">
+                        <label for="dateStart">起始日期</label>
+                        <input type="date" id="dateStart" value="">
+                    </div>
+                    <div class="form-group">
+                        <label for="dateEnd">結束日期</label>
+                        <input type="date" id="dateEnd" value="">
+                    </div>
+                    <div class="form-actions">
+                        <button id="searchBtn" class="btn btn-primary">
+                            <i class="fas fa-search" style="margin-right: 8px;"></i>
+                            查詢法案
+                        </button>
+                        <button id="resetBtn" class="btn btn-secondary">
+                            <i class="fas fa-redo" style="margin-right: 8px;"></i>
+                            重置
+                        </button>
+                    </div>
+                    <div class="form-help">
+                        <i class="fas fa-info-circle" style="margin-right: 8px;"></i>
+                        請輸入日期範圍來查詢在此期間刊登憲報的法案。日期格式：YYYY-MM-DD
+                    </div>
+                </div>
+                <div class="data-stats">
+                    <div class="stat-item">
+                        <span id="total-ordinances" class="stat-value">0</span>
+                        <span class="stat-label">條例數目</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="total-bills" class="stat-value">0</span>
+                        <span class="stat-label">法案數目</span>
+                    </div>
+                    <div class="stat-item">
+                        <span id="total-committees" class="stat-value">0</span>
+                        <span class="stat-label">委員會數目</span>
+                    </div>
+                </div>
+            </section>
+            <section class="data-section">
+                <div class="data-header">
+                    <h2>法案查詢結果</h2>
+                    <p class="subtitle">點擊條例、法案或委員會名稱查看更多詳細資訊</p>
+                </div>
+                <div class="accordion-container" id="accordion-container">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>請選擇日期範圍並點擊「查詢法案」以開始查詢</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+        <footer class="footer">
+            <p>法案資料庫查詢系統 | 資料來源: 香港立法會法案資料庫 | 最後更新: 2024年</p>
+        </footer>
+    </div>
+    <script>
+        // 全局變量
+        let currentData = [];
+        let totalOrdinances = 0;
+        let totalBills = 0;
+        let totalCommittees = 0;
+        
+        // 日期格式化函數
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // 初始化日期輸入
+        function initializeDates() {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            
+            // 設置起始日期為當年1月1日
+            const dateStart = document.getElementById('dateStart');
+            dateStart.value = `${currentYear}-01-01`;
+            
+            // 設置結束日期為下一年1月1日
+            const dateEnd = document.getElementById('dateEnd');
+            dateEnd.value = `${currentYear + 1}-01-01`;
+            
+            // 設置最大日期為今天
+            const today = formatDate(now);
+            dateStart.max = today;
+            dateEnd.max = today;
+            
+            // 設置最小日期
+            dateStart.min = '2000-01-01';
+            dateEnd.min = '2000-01-01';
+        }
+
+        // 顯示通知
+        function showNotification(message, type = 'info') {
+            // 移除現有通知
+            const existingNotification = document.querySelector('.notification');
+            if (existingNotification) {
+                existingNotification.remove();
+            }
+
+            // 創建通知元素
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 
+                                  type === 'error' ? 'exclamation-circle' : 
+                                  'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+
+            // 添加到文檔
+            document.body.appendChild(notification);
+
+            // 3秒後移除
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // 獲取法案資料
+        async function fetchBillsData() {
+            const dateStart = document.getElementById('dateStart').value;
+            const dateEnd = document.getElementById('dateEnd').value;
+            
+            // 驗證日期輸入
+            if (!dateStart || !dateEnd) {
+                showNotification('請輸入起始日期和結束日期', 'error');
+                return null;
+            }
+            
+            if (dateStart > dateEnd) {
+                showNotification('起始日期不能晚於結束日期', 'error');
+                return null;
+            }
+            
+            try {
+                const apiUrl = `https://app.legco.gov.hk/BillsDB/odata/Vbills?$format=json&$inlinecount=allpages&$filter=bill_gazette_date+ge+datetime'${dateStart}'+and+bill_gazette_date+lt+datetime'${dateEnd}'`;
+                
+                const container = document.getElementById('accordion-container');
+                container.innerHTML = '<div class="loading"><div class="loading-spinner"></div><p>正在查詢法案資料...</p></div>';
+                
+                showNotification('正在查詢法案資料...', 'info');
+                
+                const response = await fetch(apiUrl);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                return data;
+                
+            } catch (error) {
+                console.error('獲取法案資料時出錯:', error);
+                const container = document.getElementById('accordion-container');
+                container.innerHTML = '<div class="no-data"><i class="fas fa-exclamation-triangle"></i><p>無法獲取法案資料，請稍後再試</p></div>';
+                showNotification('查詢失敗，請檢查網絡連接或稍後再試', 'error');
+                return null;
+            }
+        }
+
+        // 更新統計數據
+        function updateStatistics() {
+            document.getElementById('total-ordinances').textContent = totalOrdinances;
+            document.getElementById('total-bills').textContent = totalBills;
+            document.getElementById('total-committees').textContent = totalCommittees;
+        }
+
+        // 更新法案列表顯示
+        function updateBillsList(data) {
+            const container = document.getElementById('accordion-container');
+            
+            if (!data || !data.value || data.value.length === 0) {
+                container.innerHTML = '<div class="no-data"><i class="fas fa-search"></i><p>未找到符合條件的法案資料</p></div>';
+                totalOrdinances = 0;
+                totalBills = 0;
+                totalCommittees = 0;
+                updateStatistics();
+                return;
+            }
+            
+            currentData = data.value;
+            
+            // 按條例標題分組
+            const groupedByOrdinance = {};
+            currentData.forEach(bill => {
+                const ordinanceTitle = bill.ordinance_title_chi || '未分類條例';
+                if (!groupedByOrdinance[ordinanceTitle]) {
+                    groupedByOrdinance[ordinanceTitle] = [];
+                }
+                groupedByOrdinance[ordinanceTitle].push(bill);
+            });
+            
+            // 生成手風琴HTML - 按條例分組
+            let accordionHTML = '';
+            const ordinances = Object.keys(groupedByOrdinance).sort();
+            
+            totalOrdinances = ordinances.length;
+            totalBills = currentData.length;
+            totalCommittees = currentData.filter(bill => bill.bills_committee_title_chi).length;
+            
+            ordinances.forEach((ordinanceTitle, ordinanceIndex) => {
+                const billsInOrdinance = groupedByOrdinance[ordinanceTitle];
+                
+                accordionHTML += `
+                    <div class="ordinance-item" data-ordinance="${ordinanceTitle}">
+                        <div class="ordinance-header" onclick="toggleOrdinance('${ordinanceTitle}')">
+                            <div>
+                                <i class="fas fa-gavel" style="margin-right: 8px;"></i>
+                                <span>${ordinanceIndex + 1}. ${ordinanceTitle} (${billsInOrdinance.length}個法案)</span>
+                            </div>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div id="ordinance-${ordinanceIndex}" class="ordinance-content" style="display:none">
+                `;
+                
+                billsInOrdinance.forEach((bill, billIndex) => {
+                    const billTitle = bill.bill_title_chi || '未命名法案';
+                    const committeeTitle = bill.bills_committee_title_chi || '';
+                    
+                    accordionHTML += `
+                        <div class="bill-item" id="bill-${ordinanceIndex}-${billIndex}">
+                            <div class="bill-header" onclick="toggleBill('${ordinanceIndex}-${billIndex}')">
+                                <div>
+                                    <i class="fas fa-file-contract" style="margin-right: 8px;"></i>
+                                    <span>${billIndex + 1}. ${billTitle}</span>
+                                </div>
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                            <div id="bill-content-${ordinanceIndex}-${billIndex}" class="ordinance-content" style="display:none">
+                    `;
+                    
+                    // 如果有委員會資訊，顯示委員會
+                    if (committeeTitle) {
+                        accordionHTML += `
+                            <div class="committee-item" id="committee-${ordinanceIndex}-${billIndex}">
+                                <div class="committee-header" onclick="toggleCommittee('${ordinanceIndex}-${billIndex}')">
+                                    <div>
+                                        <i class="fas fa-users" style="margin-right: 8px;"></i>
+                                        <span>${committeeTitle}</span>
+                                    </div>
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <div id="committee-content-${ordinanceIndex}-${billIndex}" class="details-content" style="display:none">
+                                    ${generateBillDetails(bill, ordinanceTitle, billTitle, committeeTitle)}
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // 如果沒有委員會資訊，直接顯示法案詳情
+                        accordionHTML += `
+                            <div class="details-content">
+                                ${generateBillDetails(bill, ordinanceTitle, billTitle, committeeTitle)}
+                            </div>
+                        `;
+                    }
+                    
+                    accordionHTML += `
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                accordionHTML += `
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = accordionHTML;
+            updateStatistics();
+            showNotification(`成功查詢到 ${currentData.length} 個法案資料`, 'success');
+        }
+
+        // 生成法案詳細資訊
+        function generateBillDetails(bill, ordinanceTitle, billTitle, committeeTitle) {
+            const formatDate = (dateStr) => {
+                if (!dateStr) return '未提供';
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('zh-HK', {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                });
+            };
+
+            return `
+                <div class="info-row">
+                    <div class="info-label">條例名稱</div>
+                    <div class="info-value">${ordinanceTitle}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">法案名稱</div>
+                    <div class="info-value">${billTitle}</div>
+                </div>
+                ${committeeTitle ? `
+                <div class="info-row">
+                    <div class="info-label">委員會名稱</div>
+                    <div class="info-value">${committeeTitle}</div>
+                </div>
+                ` : ''}
+                <div class="info-row">
+                    <div class="info-label">提案人</div>
+                    <div class="info-value">${bill.proposed_by_chi || '未提供'}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">憲報刊登日期</div>
+                    <div class="info-value">${formatDate(bill.bill_gazette_date)}</div>
+                </div>
+                ${bill.ordinance_gazette_date ? `
+                <div class="info-row">
+                    <div class="info-label">條例刊登日期</div>
+                    <div class="info-value">${formatDate(bill.ordinance_gazette_date)}</div>
+                </div>
+                ` : ''}
+                <div class="info-row">
+                    <div class="info-label">條例編號</div>
+                    <div class="info-value">${bill.ordinance_year_number_chi || '未提供'}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">首次提交日期</div>
+                    <div class="info-value">${formatDate(bill.first_reading_date)}</div>
+                </div>
+                ${bill.second_reading_date ? `
+                <div class="info-row">
+                    <div class="info-label">二讀日期</div>
+                    <div class="info-value">${formatDate(bill.second_reading_date)}</div>
+                </div>
+                ` : ''}
+                ${bill.third_reading_date ? `
+                <div class="info-row">
+                    <div class="info-label">三讀日期</div>
+                    <div class="info-value">${formatDate(bill.third_reading_date)}</div>
+                </div>
+                ` : ''}
+                <div class="info-row">
+                    <div class="info-label">相關連結</div>
+                    <div class="info-value">
+                        ${bill.bill_content_url_chi ? `<a href="${bill.bill_content_url_chi}" target="_blank"><i class="fas fa-file-pdf"></i> 法案文件(中文)</a><br>` : ''}
+                        ${bill.bill_content_url_eng ? `<a href="${bill.bill_content_url_eng}" target="_blank"><i class="fas fa-file-pdf"></i> 法案文件(英文)</a><br>` : ''}
+                        ${bill.ordinance_content_url_chi ? `<a href="${bill.ordinance_content_url_chi}" target="_blank"><i class="fas fa-file-pdf"></i> 條例文件(中文)</a><br>` : ''}
+                        ${bill.ordinance_content_url_eng ? `<a href="${bill.ordinance_content_url_eng}" target="_blank"><i class="fas fa-file-pdf"></i> 條例文件(英文)</a>` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        // 切換手風琴功能
+        function toggleOrdinance(ordinanceTitle) {
+            const elements = document.querySelectorAll(`[data-ordinance="${ordinanceTitle}"]`);
+            elements.forEach(element => {
+                const content = element.querySelector('.ordinance-content');
+                const header = element.querySelector('.ordinance-header');
+                const icon = header.querySelector('.fa-chevron-down');
+                
+                if (content.style.display === 'none') {
+                    content.style.display = 'block';
+                    icon.className = 'fas fa-chevron-up';
+                } else {
+                    content.style.display = 'none';
+                    icon.className = 'fas fa-chevron-down';
+                }
+            });
+        }
+
+        function toggleBill(billId) {
+            const content = document.getElementById(`bill-content-${billId}`);
+            const header = content.previousElementSibling;
+            const icon = header.querySelector('.fa-chevron-down, .fa-chevron-up');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.className = 'fas fa-chevron-up';
+            } else {
+                content.style.display = 'none';
+                icon.className = 'fas fa-chevron-down';
+            }
+        }
+
+        function toggleCommittee(committeeId) {
+            const content = document.getElementById(`committee-content-${committeeId}`);
+            const header = content.previousElementSibling;
+            const icon = header.querySelector('.fa-chevron-down, .fa-chevron-up');
+            
+            if (content.style.display === 'none') {
+                content.style.display = 'block';
+                icon.className = 'fas fa-chevron-up';
+            } else {
+                content.style.display = 'none';
+                icon.className = 'fas fa-chevron-down';
+            }
+        }
+
+        // 初始化應用
+        document.addEventListener('DOMContentLoaded', function () {
+            initializeDates();
+            
+            // 綁定查詢按鈕事件
+            document.getElementById('searchBtn').addEventListener('click', async function() {
+                const data = await fetchBillsData();
+                if (data) {
+                    updateBillsList(data);
+                }
+            });
+            
+            // 綁定重置按鈕事件
+            document.getElementById('resetBtn').addEventListener('click', function() {
+                initializeDates();
+                const container = document.getElementById('accordion-container');
+                container.innerHTML = '<div class="loading"><div class="loading-spinner"></div><p>請選擇日期範圍並點擊「查詢法案」以開始查詢</p></div>';
+                
+                totalOrdinances = 0;
+                totalBills = 0;
+                totalCommittees = 0;
+                updateStatistics();
+                
+                showNotification('已重置查詢條件', 'info');
+            });
+            
+            // 按Enter鍵觸發查詢
+            document.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    document.getElementById('searchBtn').click();
+                }
+            });
+
+            document.getElementById('searchBtn').click();
+        });
+    </script>
+</body>
+</html>
